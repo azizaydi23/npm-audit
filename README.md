@@ -36,7 +36,8 @@ Here’s what it covers:
    * ✅ Sets up Node.js (v20).
    * ✅ Installs dependencies safely with `npm ci --ignore-scripts` (blocks malicious install scripts).
    * ✅ Runs `npm audit --audit-level=high --omit=dev` to catch vulnerabilities in production deps.
-   * ✅ (Optional, recommended) Runs a **malware scan script** that looks for known IoCs (like `shai-hulud`, suspicious webhooks, or malicious file hashes).
+   * ✅ Runs a **malware scan script** that looks for known IoCs (like `shai-hulud`, suspicious webhooks, or malicious file hashes).
+   * ✅ Runs a **malicious package scanner** to detect compromised NPM versions (based on a curated blocklist).
 
 3. **Why It Matters**
 
@@ -77,6 +78,11 @@ jobs:
           git ls-files ".github/workflows" | grep shai-hulud && echo "⚠️ Workflow infection detected"
           git ls-remote --heads origin | grep shai-hulud && echo "⚠️ Rogue branch detected"
           grep -R "webhook.site" . && echo "⚠️ Suspicious exfil endpoint"
+
+      # New: Malicious package scanner
+      - name: Scan for malicious packages
+        run: |
+          node --experimental-permission --allow-fs-read=. .github/scripts/malware-scan.js "."
 ```
 
 ---
@@ -110,11 +116,18 @@ It won’t stop every attack, but it ensures you **never ship known vulnerabilit
 
 3. Copy the code above.
 
-4. Commit & push:
+4. Add the malicious package scanner script:
 
    ```bash
-   git add .github/workflows/security-check.yml
-   git commit -m "Add security audit workflow"
+   mkdir -p .github/scripts
+   cp malware-scan.js .github/scripts/
+   ```
+
+5. Commit & push:
+
+   ```bash
+   git add .github/workflows/security-check.yml .github/scripts/malware-scan.js
+   git commit -m "Add security audit & malware scan workflow"
    git push origin main
    ```
 
