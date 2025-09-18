@@ -25,7 +25,7 @@ jobs:
           git ls-files ".github/workflows" | grep shai-hulud && echo "⚠️ Workflow infection detected"
           git ls-remote --heads origin | grep shai-hulud && echo "⚠️ Rogue branch detected"
           grep -R "webhook.site" . && echo "⚠️ Suspicious exfil endpoint"
-
-       # 👇 NEW Step: run malware scan
+          
+      # 👇 NEW Step: run malware scan
       - run: |
           node --experimental-permission --allow-fs-read=. .github/scripts/malware-scan.js "."    
