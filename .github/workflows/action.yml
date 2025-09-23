@@ -25,7 +25,15 @@ jobs:
           git ls-files ".github/workflows" | grep shai-hulud && echo "⚠️ Workflow infection detected"
           git ls-remote --heads origin | grep shai-hulud && echo "⚠️ Rogue branch detected"
           grep -R "webhook.site" . && echo "⚠️ Suspicious exfil endpoint"
-          
-      # 👇 NEW Step: run malware scan
+
+      # Custom malware scan script
       - run: |
-          node --experimental-permission --allow-fs-read=. .github/scripts/malware-scan.js "."    
+          node --experimental-permission --allow-fs-read=. .github/scripts/malware-scan.js "."
+
+      # 🔐 Snyk Security Scan
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: test --severity-threshold=high --all-projects
