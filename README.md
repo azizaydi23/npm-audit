@@ -38,6 +38,7 @@ Here’s what it covers:
    * ✅ Runs `npm audit --audit-level=high --omit=dev` to catch vulnerabilities in production deps.
    * ✅ Runs a **malware scan script** that looks for known IoCs (like `shai-hulud`, suspicious webhooks, or malicious file hashes).
    * ✅ Runs a **malicious package scanner** to detect compromised NPM versions (based on a curated blocklist).
+   * ✅ **NEW:** Runs **Snyk** as an extra layer of defense — Snyk’s database catches vulnerabilities *faster* and often before `npm audit` does.
 
 3. **Why It Matters**
 
@@ -45,6 +46,7 @@ Here’s what it covers:
    * 💡 Warns you if malicious code sneaks in through transitive dependencies.
    * 💡 Provides an **early warning system** before secrets or workflows get compromised.
    * 💡 Strengthens your **supply chain defense** with minimal setup.
+   * 💡 **Snyk integration** gives you broader coverage and earlier detection compared to the default NPM advisories.
 
 ---
 
@@ -79,10 +81,18 @@ jobs:
           git ls-remote --heads origin | grep shai-hulud && echo "⚠️ Rogue branch detected"
           grep -R "webhook.site" . && echo "⚠️ Suspicious exfil endpoint"
 
-      # New: Malicious package scanner
+      # Malicious package scanner
       - name: Scan for malicious packages
         run: |
           node --experimental-permission --allow-fs-read=. .github/scripts/malware-scan.js "."
+
+      # NEW: Snyk vulnerability scan
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@v1
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
 ```
 
 ---
@@ -95,7 +105,7 @@ Supply chain attacks are no longer rare — they’re **increasing, targeted, an
 * 🧨 Malware now persists inside CI/CD pipelines and steals secrets.
 * 🧨 The cost of compromise is huge: leaked tokens, production access, and user data.
 
-This workflow gives you a **baseline level of protection**.
+By combining **npm audit**, **malware scanning**, and **Snyk’s intelligence**, this workflow gives you a **defense-in-depth strategy**.
 It won’t stop every attack, but it ensures you **never ship known vulnerabilities or silent infections**.
 
 ---
@@ -123,11 +133,17 @@ It won’t stop every attack, but it ensures you **never ship known vulnerabilit
    cp malware-scan.js .github/scripts/
    ```
 
-5. Commit & push:
+5. Set up Snyk:
+
+   * Create a free [Snyk account](https://snyk.io).
+   * Generate a Snyk API token.
+   * Add it to your repo as a GitHub Secret named `SNYK_TOKEN`.
+
+6. Commit & push:
 
    ```bash
    git add .github/workflows/security-check.yml .github/scripts/malware-scan.js
-   git commit -m "Add security audit & malware scan workflow"
+   git commit -m "Add security audit, malware scan, and Snyk workflow"
    git push origin main
    ```
 
@@ -149,7 +165,7 @@ It won’t stop every attack, but it ensures you **never ship known vulnerabilit
 The **Shai-Hulud worm** proved that the ecosystem’s weakest link is the **supply chain itself**.
 We can’t blindly trust dependencies anymore — we need to **verify continuously**.
 
-This workflow is a **practical step** toward keeping your projects, pipelines, and users safe.
+This workflow now goes beyond a basic `npm audit`. With **Snyk’s zero-day detection** + **malware scanning**, it’s a **practical, layered defense** for modern JavaScript projects.
 
 If you found this useful, ⭐ star the repo and share it with your team.
 The more developers adopt these practices, the harder it becomes for attackers to succeed.
