@@ -1,0 +1,39 @@
+name: Security Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *" # daily
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=high --omit=dev
+
+      # Optional malware scan for Shai-Hulud IoCs
+      - run: |
+          git ls-files ".github/workflows" | grep shai-hulud && echo "⚠️ Workflow infection detected"
+          git ls-remote --heads origin | grep shai-hulud && echo "⚠️ Rogue branch detected"
+          grep -R "webhook.site" . && echo "⚠️ Suspicious exfil endpoint"
+
+      # Custom malware scan script
+      - run: |
+          node --experimental-permission --allow-fs-read=. malware-scan.js "."
+
+      # 🔐 Snyk Security Scan
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: test --severity-threshold=high --all-projects
