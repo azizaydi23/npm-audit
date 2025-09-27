@@ -1,4 +1,10 @@
 name: npm malware-scan
+description: "Hackers slipped a worm into popular NPM packages, so I built a GitHub check that works like a smoke alarm to catch it early."
+author: Mohamed aziz aydi
+
+branding:
+  icon: "shield"  
+  color: "red"     
 
 on:
   push:
