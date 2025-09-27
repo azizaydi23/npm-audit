@@ -28,7 +28,7 @@ jobs:
 
       # Custom malware scan script
       - run: |
-          node --experimental-permission --allow-fs-read=. malware-scan.js "."
+          node --experimental-permission --allow-fs-read=. ./malware-scan.js "."
 
       # 🔐 Snyk Security Scan
       - name: Run Snyk to check for vulnerabilities
